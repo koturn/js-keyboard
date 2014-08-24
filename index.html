@@ -76,6 +76,7 @@ function circle(x, y) {
     .remove();
 }
 
+var isKeydown = false;
 svg.selectAll('rect')
   .data(dataset)
   .enter()
@@ -86,7 +87,7 @@ svg.selectAll('rect')
   .attr('width', function(d) { return d.width; })
   .attr('fill', function(d) { return d.fill; })
   .attr('stroke', 'black')
-  .on('click', function(d) {
+  .on('mousedown', function(d) {
     circle(d3.mouse(this)[0], d3.mouse(this)[1]);
     echoMIDIMessage2(0x90, d.noteNr)
   });
