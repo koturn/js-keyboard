@@ -6,19 +6,17 @@
 </head>
 <body>
 
-<h1>Web MIDI API を用いたキーボード</h1>
-<div>
+<h1>Web MIDI API を用いたキーボード</h1> <div>
   <p>
   MIDI-IN:
-  <select name="inputPort" id="inputPort" size="1"  onChange="changeInput()"></select>
+  <select name="inputPort" id="inputPort" size="1"  onChange="Midi.changeInput()"></select>
   </p>
 
   <p>
   MIDI-OUT:
-  <select name="outputPort" id="outputPort" size="1" onChange="changeOutput()"></select>
+  <select name="outputPort" id="outputPort" size="1" onChange="Midi.changeOutput()"></select>
   </p>
 </div>
-
 
 <p>
 <p>キーボード</p>
@@ -28,69 +26,80 @@
 <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.4.11/d3.min.js"></script>
 <script src="midi.js"></script>
 <script>
-var N_OCTAVE = 7;
-var OCT_W = 210;
-function makeDataset() {
-  var dataset = [
-    {'noteNr': 21, 'x': 20, 'y': 10, 'height': 100, 'width': 30, 'fill': 'white'},  // A
-    {'noteNr': 23, 'x': 50, 'y': 10, 'height': 100, 'width': 30, 'fill': 'white'},  // B
-    {'noteNr': 22, 'x': 42, 'y': 10, 'height':  70, 'width': 18, 'fill': 'black'}
-  ];
-  var idx = dataset.length;
-  for (var i = 0; i < N_OCTAVE; i++) {
-    var oct = i * 12;
-    var xOffset = OCT_W * i;
-    // C D E F G A B
-    dataset[oct + idx    ]  = {'noteNr': 24 + oct, 'x':  80 + xOffset, 'y': 10, 'height': 100, 'width': 30, 'fill': 'white'};
-    dataset[oct + idx + 1]  = {'noteNr': 26 + oct, 'x': 110 + xOffset, 'y': 10, 'height': 100, 'width': 30, 'fill': 'white'};
-    dataset[oct + idx + 2]  = {'noteNr': 28 + oct, 'x': 140 + xOffset, 'y': 10, 'height': 100, 'width': 30, 'fill': 'white'};
-    dataset[oct + idx + 3]  = {'noteNr': 29 + oct, 'x': 170 + xOffset, 'y': 10, 'height': 100, 'width': 30, 'fill': 'white'};
-    dataset[oct + idx + 4]  = {'noteNr': 31 + oct, 'x': 200 + xOffset, 'y': 10, 'height': 100, 'width': 30, 'fill': 'white'};
-    dataset[oct + idx + 5]  = {'noteNr': 33 + oct, 'x': 230 + xOffset, 'y': 10, 'height': 100, 'width': 30, 'fill': 'white'};
-    dataset[oct + idx + 6]  = {'noteNr': 35 + oct, 'x': 260 + xOffset, 'y': 10, 'height': 100, 'width': 30, 'fill': 'white'};
-    // C# D#
-    dataset[oct + idx + 7]  = {'noteNr': 25 + oct, 'x':  98 + xOffset, 'y': 10, 'height':  70, 'width': 18, 'fill': 'black'};
-    dataset[oct + idx + 8]  = {'noteNr': 27 + oct, 'x': 132 + xOffset, 'y': 10, 'height':  70, 'width': 18, 'fill': 'black'};
-    // F# G# A#
-    dataset[oct + idx + 9]  = {'noteNr': 30 + oct, 'x': 188 + xOffset, 'y': 10, 'height':  70, 'width': 18, 'fill': 'black'};
-    dataset[oct + idx + 10] = {'noteNr': 32 + oct, 'x': 220 + xOffset, 'y': 10, 'height':  70, 'width': 18, 'fill': 'black'};
-    dataset[oct + idx + 11] = {'noteNr': 34 + oct, 'x': 252 + xOffset, 'y': 10, 'height':  70, 'width': 18, 'fill': 'black'};
+(function(global) {
+  'use strict';
+
+  var midi = new Midi;
+  var N_OCTAVE = 7;
+  var OCT_W = 210;
+
+  var dataset = (function() {
+    var dataset = [
+      {'noteNr': 21, 'x': 20, 'y': 10, 'height': 100, 'width': 30, 'fill': 'white'},  // A
+      {'noteNr': 23, 'x': 50, 'y': 10, 'height': 100, 'width': 30, 'fill': 'white'},  // B
+      {'noteNr': 22, 'x': 42, 'y': 10, 'height':  70, 'width': 18, 'fill': 'black'}
+    ];
+    var idx = dataset.length;
+    for (var i = 0; i < N_OCTAVE; i++) {
+      var oct = i * 12;
+      var xOffset = OCT_W * i;
+      // C D E F G A B
+      dataset[oct + idx    ]  = {'noteNr': 24 + oct, 'x':  80 + xOffset, 'y': 10, 'height': 100, 'width': 30, 'fill': 'white'};
+      dataset[oct + idx + 1]  = {'noteNr': 26 + oct, 'x': 110 + xOffset, 'y': 10, 'height': 100, 'width': 30, 'fill': 'white'};
+      dataset[oct + idx + 2]  = {'noteNr': 28 + oct, 'x': 140 + xOffset, 'y': 10, 'height': 100, 'width': 30, 'fill': 'white'};
+      dataset[oct + idx + 3]  = {'noteNr': 29 + oct, 'x': 170 + xOffset, 'y': 10, 'height': 100, 'width': 30, 'fill': 'white'};
+      dataset[oct + idx + 4]  = {'noteNr': 31 + oct, 'x': 200 + xOffset, 'y': 10, 'height': 100, 'width': 30, 'fill': 'white'};
+      dataset[oct + idx + 5]  = {'noteNr': 33 + oct, 'x': 230 + xOffset, 'y': 10, 'height': 100, 'width': 30, 'fill': 'white'};
+      dataset[oct + idx + 6]  = {'noteNr': 35 + oct, 'x': 260 + xOffset, 'y': 10, 'height': 100, 'width': 30, 'fill': 'white'};
+      // C# D#
+      dataset[oct + idx + 7]  = {'noteNr': 25 + oct, 'x':  98 + xOffset, 'y': 10, 'height':  70, 'width': 18, 'fill': 'black'};
+      dataset[oct + idx + 8]  = {'noteNr': 27 + oct, 'x': 132 + xOffset, 'y': 10, 'height':  70, 'width': 18, 'fill': 'black'};
+      // F# G# A#
+      dataset[oct + idx + 9]  = {'noteNr': 30 + oct, 'x': 188 + xOffset, 'y': 10, 'height':  70, 'width': 18, 'fill': 'black'};
+      dataset[oct + idx + 10] = {'noteNr': 32 + oct, 'x': 220 + xOffset, 'y': 10, 'height':  70, 'width': 18, 'fill': 'black'};
+      dataset[oct + idx + 11] = {'noteNr': 34 + oct, 'x': 252 + xOffset, 'y': 10, 'height':  70, 'width': 18, 'fill': 'black'};
+    }
+    var oct = N_OCTAVE * 12;
+    var xOffset = OCT_W * N_OCTAVE;
+    dataset[oct + idx]  = {
+      'noteNr': 24 + oct,
+      'x':  80 + xOffset,
+      'y': 10,
+      'height': 100,
+      'width': 30,
+      'fill': 'white'
+    };
+    return dataset;
+  })();
+
+
+  var svg = d3.select('#keyboard')
+    .append('svg').attr({'height': 120, 'width': (OCT_W) * 8 + 10});
+
+  function circle(x, y) {
+    svg.append('circle')
+      .attr({'cx': x, 'cy': y, 'r': 0})
+      .attr({'fill': 'none', 'stroke': 'orange'})
+      .transition().delay(100).duration(2000)
+      .attr('stroke-width', 2).attr('r', 1600)
+      .remove();
   }
-  var oct = N_OCTAVE * 12;
-  var xOffset = OCT_W * N_OCTAVE;
-  dataset[oct + idx    ]  = {'noteNr': 24 + oct, 'x':  80 + xOffset, 'y': 10, 'height': 100, 'width': 30, 'fill': 'white'};
-  return dataset;
-}
 
-dataset = makeDataset();
-
-var svg = d3.select('#keyboard')
-  .append('svg').attr({'height': 120, 'width': (OCT_W) * 8 + 10});
-
-function circle(x, y) {
-  svg.append('circle')
-    .attr({'cx': x, 'cy': y, 'r': 0})
-    .attr({'fill': 'none', 'stroke': 'orange'})
-    .transition().delay(100).duration(2000)
-    .attr('stroke-width', 2).attr('r', 1600)
-    .remove();
-}
-
-var isKeydown = false;
-svg.selectAll('rect')
-  .data(dataset)
-  .enter()
-  .append('rect')
-  .attr('x', function(d) { return d.x; })
-  .attr('y', function(d) { return d.y; })
-  .attr('height', function(d) { return d.height; })
-  .attr('width', function(d) { return d.width; })
-  .attr('fill', function(d) { return d.fill; })
-  .attr('stroke', 'black')
-  .on('mousedown', function(d) {
-    circle(d3.mouse(this)[0], d3.mouse(this)[1]);
-    echoMIDIMessage2(0x90, d.noteNr)
-  });
+  svg.selectAll('rect')
+    .data(dataset)
+    .enter()
+    .append('rect')
+    .attr('x', function(d) { return d.x; })
+    .attr('y', function(d) { return d.y; })
+    .attr('height', function(d) { return d.height; })
+    .attr('width', function(d) { return d.width; })
+    .attr('fill', function(d) { return d.fill; })
+    .attr('stroke', 'black')
+    .on('mousedown', function(d) {
+      circle(d3.mouse(this)[0], d3.mouse(this)[1]);
+      midi.sendNote(0x90, d.noteNr)
+    });
+})((this || 0).self || global);
 </script>
 </body>
 </html>
